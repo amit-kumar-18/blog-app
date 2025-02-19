@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('includes/head') %>
+  <body>
+    <%- include('includes/header') %>
+
+    <main>
+      <h2>Welcome to your dashboard</h2>
+      <ul>
+        <% posts.forEach(post => { %>
+        <li>
+          <a href="/post/<%= post.id%>"><%= post.title %></a> on <%=
+          post.createdDate %>
+        </li>
+        <% }); %>
+      </ul>
+    </main>
+
+    <%- include('includes/footer') %>
+  </body>
+</html>
