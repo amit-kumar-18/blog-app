@@ -1,5 +1,5 @@
 {
-  "name": "post_webapp",
+  "name": "blog_webapp",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
     "marked": "^15.0.7",
     "nodemon": "^3.1.9",

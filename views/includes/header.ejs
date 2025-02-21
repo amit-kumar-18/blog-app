@@ -1,9 +1,10 @@
 <header>
   <h2>
-    <a href="/">Posts App</a>
+    <a href="/" style="text-decoration: none">Blog App</a>
   </h2>
   <nav>
     <% if (user) {%>
+    <a href="/">Home</a>
     <a href="/create-post">Create Post</a>
     <a href="/logout">Logout</a>
     <form action="/delete-user" method="POST" style="display: inline">
@@ -15,8 +16,6 @@
       </button>
     </form>
 
-    <% } else { %>
-    <a href="/login">Login</a>
     <% } %>
   </nav>
 </header>
