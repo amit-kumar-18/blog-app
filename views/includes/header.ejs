@@ -1,11 +1,20 @@
 <header>
   <h2>
-    <a href="/">Post App</a>
+    <a href="/">Posts App</a>
   </h2>
   <nav>
     <% if (user) {%>
     <a href="/create-post">Create Post</a>
     <a href="/logout">Logout</a>
+    <form action="/delete-user" method="POST" style="display: inline">
+      <button
+        type="submit"
+        onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.');"
+      >
+        Delete Account
+      </button>
+    </form>
+
     <% } else { %>
     <a href="/login">Login</a>
     <% } %>

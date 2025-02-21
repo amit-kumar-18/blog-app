@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const marked = require('marked');
 const cookieParser = require('cookie-parser');
 const sanitizeHTML = require('sanitize-html');
 const db = require('better-sqlite3')('postApp.db');
@@ -25,13 +26,13 @@ const createTables = db.transaction(() => {
     `
     CREATE TABLE IF NOT EXISTS posts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      createdDate TEXT DEFAULT CURRENT_TIMESTAMP,
-      title STRING NOT NULL,
+      createdDate TEXT DEFAULT (strftime('%H:%M:%S - %d/%m/%Y', 'now', 'localtime')),
+      title TEXT NOT NULL,
       body TEXT NOT NULL,
       authorId INTEGER,
-      FOREIGN KEY (authorId) REFERENCES users (id)
+      FOREIGN KEY (authorId) REFERENCES users(id) ON DELETE CASCADE
     )
-  `
+    `
   ).run();
 });
 
@@ -47,6 +48,28 @@ app.use(cookieParser());
 
 // Middlewares
 app.use((req, res, next) => {
+  // make our markdown function available
+  res.locals.filterUserHTML = (content) => {
+    return sanitizeHTML(marked.parse(content), {
+      allowedTags: [
+        'p',
+        'br',
+        'ul',
+        'li',
+        'ol',
+        'strong',
+        'i',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+      ],
+      allowedAttributes: {},
+    });
+  };
+
   res.locals.errors = [];
 
   // try to decode the incoming cookie.
@@ -72,7 +95,9 @@ const isLoggedIn = (req, res, next) => {
 
 app.get('/', (req, res) => {
   if (req.user) {
-    const stmt = db.prepare('SELECT * FROM posts WHERE authorId = ?');
+    const stmt = db.prepare(
+      'SELECT * FROM posts WHERE authorId = ? ORDER BY createdDate DESC'
+    );
     const posts = stmt.all(req.user.userid);
 
     return res.render('dashboard', { posts });
@@ -103,7 +128,23 @@ app.get('/post/:id', (req, res) => {
     return res.redirect('/');
   }
 
-  res.render('post', { post });
+  const isAuthor = post.authorId === req.user.userid;
+
+  res.render('post', { post, isAuthor });
+});
+
+app.get('/edit-post/:id', isLoggedIn, (req, res) => {
+  // try to look up the post in question.
+  const stmt = db.prepare('SELECT * FROM posts WHERE id = ?');
+  const post = stmt.get(req.params.id);
+
+  // if you're not the author, redirect to homepage.
+  if (post.authorId !== req.user.userid || !post) {
+    return res.redirect('/');
+  }
+
+  // otherwise, render the edit post template.
+  res.render('edit-post', { post });
 });
 
 app.post('/login', (req, res) => {
@@ -136,7 +177,6 @@ app.post('/login', (req, res) => {
   }
 
   // Give a cookie and redirect.
-
   const jwtToken = jwt.sign(
     {
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
@@ -259,6 +299,51 @@ app.post('/create-post', isLoggedIn, (req, res) => {
   const realPost = getPostStatement.get(result.lastInsertRowid);
 
   res.redirect(`/post/${realPost.id}`);
+});
+
+app.post('/edit-post/:id', isLoggedIn, (req, res) => {
+  const stmt = db.prepare('SELECT * FROM posts WHERE id = ?');
+  const post = stmt.get(req.params.id);
+
+  // if you're not the author, redirect to homepage.
+  if (post.authorId !== req.user.userid || !post) {
+    return res.redirect('/');
+  }
+
+  const errors = postValidation(req);
+  if (errors.length) {
+    return res.render('edit-post', { errors });
+  }
+  const updateStmt = db.prepare(
+    'UPDATE posts SET title = ?, body = ? WHERE id = ?'
+  );
+  updateStmt.run(req.body.title, req.body.body, req.params.id);
+
+  res.redirect(`/post/${req.params.id}`);
+});
+
+app.post('/delete-post/:id', isLoggedIn, (req, res) => {
+  // try to loop up the post in question.
+  const stmt = db.prepare('SELECT * FROM posts WHERE id = ?');
+  const post = stmt.get(req.params.id);
+
+  // if you're not the author or invalid post, redirect to homepage.
+  if (!post || post.authorId !== req.user.userid) {
+    return res.redirect('/');
+  }
+
+  const deleteStmt = db.prepare('DELETE from posts WHERE id = ?');
+  deleteStmt.run(req.params.id);
+
+  res.redirect('/');
+});
+
+app.post('/delete-user', isLoggedIn, (req, res) => {
+  const stmt = db.prepare('DELETE FROM users WHERE id = ?');
+  stmt.run(req.user.userid);
+
+  res.clearCookie('postApp');
+  res.redirect('/');
 });
 
 app.listen(port, () => {

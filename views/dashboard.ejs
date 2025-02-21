@@ -5,7 +5,13 @@
     <%- include('includes/header') %>
 
     <main>
-      <h2>Welcome to your dashboard</h2>
+      <% if(posts.length === 0) { %>
+      <h4>Hello <%= user.username %>, you do not have any posts yet.</h4>
+
+      <% } else { %>
+      <h4>Hello <%= user.username %>, here are your posts.</h4>
+
+      <% } %>
       <ul>
         <% posts.forEach(post => { %>
         <li>

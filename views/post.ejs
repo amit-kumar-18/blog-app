@@ -9,8 +9,9 @@
 
       <article>
         <small>posted by <%= post.username %> on <%=post.createdDate %></small>
-        <div><%= post.body %></div>
+        <div><%- filterUserHTML(post.body) %></div>
       </article>
+      <% if (isAuthor) {%>
       <a href="/edit-post/<%= post.id %>" class="button">Edit Post</a>
 
       <form
@@ -20,6 +21,7 @@
       >
         <button>Delete Post</button>
       </form>
+      <% } %>
     </main>
 
     <%- include('includes/footer') %>
