@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('../config/db');
+const db = require('../model/db');
 const sanitizeHTML = require('sanitize-html');
 const { isLoggedIn } = require('../middlewares/authMiddleware');
 
