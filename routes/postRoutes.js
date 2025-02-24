@@ -1,7 +1,10 @@
 const express = require('express');
 const db = require('../model/db');
 const sanitizeHTML = require('sanitize-html');
-const { isLoggedIn } = require('../middlewares/authMiddleware');
+const {
+  isLoggedIn,
+  authenticateUser,
+} = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
@@ -90,6 +93,15 @@ router.post('/delete-post/:id', isLoggedIn, (req, res) => {
 
   db.prepare('DELETE FROM posts WHERE id = ?').run(req.params.id);
   res.redirect('/');
+});
+
+// other user's posts
+router.get('/posts', authenticateUser, (req, res) => {
+  const stmt = db.prepare(
+    'SELECT posts.*, users.username FROM posts INNER JOIN users ON posts.authorId = users.id WHERE posts.authorId != ? ORDER BY createdDate DESC                                    '
+  );
+  const posts = stmt.all(req.user.userid);
+  res.render('all-posts', { posts });
 });
 
 module.exports = router;

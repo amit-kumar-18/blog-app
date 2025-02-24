@@ -4,8 +4,9 @@
   </h2>
   <nav>
     <% if (user) {%>
-    <a href="/">Home</a>
+    <a href="/"><%= user.username %></a>
     <a href="/create-post">Create Post</a>
+    <a href="/posts">Other Posts</a>
     <a href="/logout">Logout</a>
     <form action="/delete-user" method="POST" style="display: inline">
       <button

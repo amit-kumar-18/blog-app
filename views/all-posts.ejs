@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('includes/head') %>
+  <body>
+    <%- include('includes/header') %>
+
+    <main>
+      <h3>User's posts</h3>
+      <% if (posts.length) { %> <% posts.forEach((post) => { %>
+      <fieldset>
+        <legend>By <%= post.username %> on <%= post.createdDate %></legend>
+        <h4><%= post.title %></h4>
+        <p><%- filterUserHTML(post.body) %></p>
+      </fieldset>
+      <% }) %> <% } else { %>
+      <p>There are no posts from other users.</p>
+      <% } %>
+    </main>
+
+    <%- include('includes/footer') %>
+  </body>
+</html>
