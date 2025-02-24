@@ -84,6 +84,7 @@ blog_webapp/
 | POST   | `/edit/:id`    | Update Blog Post       |
 | POST   | `/delete/:id`  | Delete a Blog Post     |
 | POST   | `/delete-user` | Delete a User Account  |
+| GET    | `/posts`       | View other users posts |
 
 ## Future Enhancements
 
